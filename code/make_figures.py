@@ -98,22 +98,27 @@ ax.set_title("Isolation: content-alone (no instruction) drives the effect")
 ax.legend(frameon=False, fontsize=9, ncol=4); ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout(); fig.savefig(FIG / "fig2_isolation.png", dpi=160); plt.close(fig)
 
-# ---- Fig 3: frontier ----
+# ---- Fig 3: frontier (groundedness panel shows BOTH judges: weak vs strong) ----
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(11, 4.2))
-for m, p in FRO.items():
+mcolor = {}
+for i, (m, p) in enumerate(FRO.items()):
     rows = load(p, "fro")
+    col = plt.cm.tab10(i)
+    mcolor[m] = col
     loads = sorted(set(r["load_target"] for r in rows))
     drift = [np.mean([r["_drift"] for r in rows if r["load_target"] == L]) for L in loads]
-    grnd = [np.mean([r["grounded"] for r in rows if r["load_target"] == L and r["grounded"] is not None]) for L in loads]
-    a1.plot(loads, drift, "-o", label=m)
-    a2.plot(loads, grnd, "-o", label=m)
+    g_weak = [np.mean([r["grounded"] for r in rows if r["load_target"] == L and r.get("grounded") is not None]) for L in loads]
+    g_strong = [np.mean([r["grounded_strong"] for r in rows if r["load_target"] == L and r.get("grounded_strong") is not None]) for L in loads]
+    a1.plot(loads, drift, "-o", color=col, label=m)
+    a2.plot(loads, g_strong, "-o", color=col, label=f"{m} — opus judge")
+    a2.plot(loads, g_weak, "--", color=col, alpha=0.5, label=f"{m} — gemma2 judge")
 a1.set_xlabel("relevant context injected (tokens)"); a1.set_ylabel("off-mainstream drift")
-a1.set_title("Frontier dose-response: novelty saturates (a switch, not a dial)")
-a1.axvspan(0, 800, color="#2f7ec4", alpha=0.06); a1.legend(frameon=False, fontsize=9)
+a1.set_title("Frontier: novelty saturates (a switch, not a dial)")
+a1.axvspan(0, 800, color="#2f7ec4", alpha=0.06); a1.legend(frameon=False, fontsize=8)
 a1.spines[["top", "right"]].set_visible(False)
 a2.set_xlabel("relevant context injected (tokens)"); a2.set_ylabel("groundedness")
-a2.set_ylim(0, 1); a2.set_title("Groundedness holds across the load range")
-a2.legend(frameon=False, fontsize=9); a2.spines[["top", "right"]].set_visible(False)
+a2.set_ylim(0, 1); a2.set_title("Groundedness: stronger judge reveals high-load erosion (Fable)")
+a2.legend(frameon=False, fontsize=7.5); a2.spines[["top", "right"]].set_visible(False)
 fig.tight_layout(); fig.savefig(FIG / "fig3_frontier.png", dpi=160); plt.close(fig)
 
 print("figures written to", FIG)
