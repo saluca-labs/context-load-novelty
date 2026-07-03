@@ -1,6 +1,8 @@
 # Relevant Context-Load as a Saturating Novelty Knob — paper package
 
-**Status:** DRAFT, staged for review. Not uploaded. Cristian reviews before any Zenodo submission.
+**Published:** Zenodo DOI [10.5281/zenodo.21149157](https://doi.org/10.5281/zenodo.21149157) (saluca community, CC-BY-4.0). Preprint, not peer-reviewed.
+
+**Cite:** Ruvalcaba, C. and the Saluca Agentic AI Research Team (2026). *Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study.* Zenodo. https://doi.org/10.5281/zenodo.21149157
 
 ## Contents
 - `paper.pdf` / `paper.md` — the preprint (figures embedded).
