@@ -109,16 +109,19 @@ for i, (m, p) in enumerate(FRO.items()):
     drift = [np.mean([r["_drift"] for r in rows if r["load_target"] == L]) for L in loads]
     g_weak = [np.mean([r["grounded"] for r in rows if r["load_target"] == L and r.get("grounded") is not None]) for L in loads]
     g_strong = [np.mean([r["grounded_strong"] for r in rows if r["load_target"] == L and r.get("grounded_strong") is not None]) for L in loads]
+    g_human = [np.mean([r["grounded_human"] for r in rows if r["load_target"] == L and r.get("grounded_human") is not None]) for L in loads]
     a1.plot(loads, drift, "-o", color=col, label=m)
-    a2.plot(loads, g_strong, "-o", color=col, label=f"{m} — opus judge")
-    a2.plot(loads, g_weak, "--", color=col, alpha=0.5, label=f"{m} — gemma2 judge")
+    a2.plot(loads, g_strong, "-o", color=col, alpha=0.8, label=f"{m} — opus judge")
+    a2.plot(loads, g_weak, "--", color=col, alpha=0.4, label=f"{m} — gemma2 judge")
+    if any(x == x for x in g_human):  # human rated Fable frontier only
+        a2.plot(loads, g_human, "-s", color="black", lw=2, label=f"{m} — HUMAN")
 a1.set_xlabel("relevant context injected (tokens)"); a1.set_ylabel("off-mainstream drift")
 a1.set_title("Frontier: novelty saturates (a switch, not a dial)")
 a1.axvspan(0, 800, color="#2f7ec4", alpha=0.06); a1.legend(frameon=False, fontsize=8)
 a1.spines[["top", "right"]].set_visible(False)
 a2.set_xlabel("relevant context injected (tokens)"); a2.set_ylabel("groundedness")
-a2.set_ylim(0, 1); a2.set_title("Groundedness: stronger judge reveals high-load erosion (Fable)")
-a2.legend(frameon=False, fontsize=7.5); a2.spines[["top", "right"]].set_visible(False)
+a2.set_ylim(0, 1); a2.set_title("Groundedness vs load: HUMAN is flat; LLM judges disagree & run lenient")
+a2.legend(frameon=False, fontsize=7); a2.spines[["top", "right"]].set_visible(False)
 fig.tight_layout(); fig.savefig(FIG / "fig3_frontier.png", dpi=160); plt.close(fig)
 
 print("figures written to", FIG)
