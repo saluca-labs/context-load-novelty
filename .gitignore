@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+# staging layout the released scripts expect (see README Quickstart); not tracked
+data/raw_logs_saluca/
+saluca/

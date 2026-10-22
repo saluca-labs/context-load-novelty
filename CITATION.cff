@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "Relevant Context-Load as a Saturating Novelty Knob: paper package"
+message: "If you use this code or data, please cite the accompanying preprint."
+type: software
+authors:
+  - family-names: Ruvalcaba
+    given-names: Cristian
+    affiliation: Saluca Labs
+  - name: "Saluca Agentic AI Research Team"
+license: Apache-2.0
+repository-code: "https://github.com/saluca-labs/context-load-novelty"
+doi: "10.5281/zenodo.21149156"
+preferred-citation:
+  type: article
+  title: "Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study"
+  authors:
+    - family-names: Ruvalcaba
+      given-names: Cristian
+      affiliation: Saluca Labs
+    - name: "Saluca Agentic AI Research Team"
+  year: 2026
+  doi: "10.5281/zenodo.21149156"
+  publisher:
+    name: Zenodo
+  notes: "Preprint, not peer-reviewed. Concept DOI, which always resolves to the latest version. Published on Zenodo under CC-BY-4.0."
