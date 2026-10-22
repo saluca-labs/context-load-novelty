@@ -4,12 +4,13 @@
 
 This is a research package, not a library. The scripts in `code/` were written for a parent checkout and do not run from this clone as released: they read logs from `data/raw_logs_saluca/creativity/` and `saluca/`, which must be staged first (see the README Quickstart). Analysis needs a local Ollama with `nomic-embed-text` for embeddings. Cite the concept DOI 10.5281/zenodo.21149156, not the version DOI.
 
-The full text of this repository's prose docs follows, one file per section. Em-dashes in the source files are rendered here as ' - '.
+The complete public surface is below. If a script or option is not listed here, it does not exist. There is no package, no service and no test suite. Analysis (no options): `code/analyze_isolation.py`, `code/analyze_frontier.py`, `code/analyze_creativity.py`, `code/compare_judges.py`, `code/make_figures.py`. Generation: `code/creativity_ratio.py` (`--provider`, `--gen`, `--judge`, `--seeds`, `--load-type isolation|pad|functional`, `--loads`, `--func-counts`, `--inject`, `--window`), `code/run_frontier.py` (`--model`, `--seeds`, `--loads`, `--window`), `code/run_claude_cli.py` (`--model`, `--seeds`, `--inject`, `--judge-model`, `--window`), `code/run_frontier_claude.py` (`--model`, `--seeds`, `--loads`, `--window`), `code/build_reference.py` (no options). Judging and rating: `code/re_judge.py` (`--judge`, `--batch`; rewrites logs in place), `code/export_human_rating.py` (`--all`), `code/merge_human_rating.py` (needs the unreleased `_key.json`). Not part of the results: `code/_smoke_cloud.py` (positional `[model] [domain]`), and the confound-study scripts `code/smoke_local.py`, `code/run_confound.py` (import a `src` package not in this repo) and `code/analyze_confound.py` (its logs are not released). `deposit_zenodo.py` is the author's deposit tooling.
 
+The full text of this repository's prose docs, concatenated, each under its path. Regenerate this file whenever one of them changes.
 
 ## README.md
 
-# Relevant Context-Load as a Saturating Novelty Knob: paper package
+### Relevant Context-Load as a Saturating Novelty Knob: paper package
 
 Harness, raw per-idea logs, figures and preprint for a cross-family study of whether the amount of
 relevant context in a language model's window changes the novelty of its ideas, for readers who
@@ -17,7 +18,36 @@ want to check or extend the result.
 
 **Published:** Zenodo, concept DOI [10.5281/zenodo.21149156](https://doi.org/10.5281/zenodo.21149156) (saluca community, CC-BY-4.0). Preprint, not peer-reviewed.
 
-## Status
+#### How it works
+
+Re-analysing the released logs, which is what the Quickstart does. Every box is a file or script on
+this branch; every arrow is a read, a write or a copy that the code performs. The staged paths are
+the ones hard-coded in the scripts (`ROOT / "data" / "raw_logs_saluca" / "creativity"` and
+`ROOT / "saluca" / "paper" / "figures"`).
+
+```mermaid
+flowchart LR
+    REL["data/ (released logs): 4 isolation files, 2 frontier files"] -->|"cp, Quickstart step 1"| ISO["data/raw_logs_saluca/creativity/ (isolation logs)"]
+    REL -->|"cp, Quickstart step 1"| FRO["data/raw_logs_saluca/creativity/frontier/ (frontier logs)"]
+    ISO --> AI["code/analyze_isolation.py"]
+    FRO --> AF["code/analyze_frontier.py"]
+    ISO --> MF["code/make_figures.py"]
+    FRO --> MF
+    EMB["Ollama /api/embed, nomic-embed-text"] -->|"one vector per idea"| AI
+    EMB --> AF
+    EMB --> MF
+    AI --> T1["stdout: grounded, drift, diverge per condition"]
+    AF --> T2["stdout: grounded, drift, diverge per load"]
+    MF --> FIG["saluca/paper/figures/fig1_cross_family.png, fig2_isolation.png, fig3_frontier.png"]
+```
+
+Novelty (drift) is computed at analysis time from the embeddings, so it needs Ollama. Groundedness
+is read from fields already in the released logs: `grounded` (gemma2 judge), `grounded_strong`
+(opus judge, added by `re_judge.py`) and, for the Fable frontier rows only, `grounded_human`
+(added by `merge_human_rating.py`). How those logs were produced is in
+[Architecture](#architecture).
+
+#### Status
 
 Research artifact, published 2026-07-03 as version 1 of the Zenodo record. The released logs in
 `data/` and the analysis and figure scripts in `code/` reproduce the paper's isolation and
@@ -36,7 +66,7 @@ local Ollama for gemma2:9b and the Claude CLI for the Claude models.
 > published on Zenodo on 2026-07-03 with the author named, and an Apache-2.0 `LICENSE` was added
 > on 2026-08-18. The remaining strengthening items are kept below as future work.
 
-### The finding, in one paragraph
+##### The finding, in one paragraph
 
 Relevant context injected as neutral reference (no "be different" instruction) reliably moves LLM
 ideation off the mainstream answer, replicated on gemma2:9b, haiku, opus, and Fable (+49% to
@@ -46,14 +76,14 @@ hundred tokens and plateaus, and there is **no optimal input/window ratio**. The
 absolute (~a few hundred tokens) and scale-invariant; the frontier model saturates *sooner* (~300
 vs ~800 tokens).
 
-### Not done (future work)
+##### Not done (future work)
 
 - More seeds; a stronger or human groundedness judge beyond the single blinded rater; a
   non-reasoning cloud family; probing beyond 54% of the window on a small-window model.
 - Expert-graded value: the paper's metrics give the load-response shape, not domain-expert
   judgment of the ideas.
 
-## Install
+#### Install
 
 Tested 2026-10-22 with Python 3.12.10, numpy 2.4.6, requests 2.33.0, matplotlib 3.10.9,
 openai 2.16.0 and Ollama 0.34.4. There is no `requirements.txt`.
@@ -66,7 +96,7 @@ ollama pull nomic-embed-text   # embeddings for novelty (drift); needed by the a
 ollama pull gemma2:9b          # only to generate new ideas
 ```
 
-## Quickstart
+#### Quickstart
 
 Re-analyse the released logs and regenerate the figures. The analysis embeds every idea through
 the local Ollama (`http://localhost:11434/api/embed`, `nomic-embed-text`), so Ollama must be
@@ -113,7 +143,24 @@ and of `analyze_frontier.py`:
 The regenerated `fig1_cross_family.png` and `fig3_frontier.png` were compared by eye with the
 committed `figures/` and match (same values and labels: +49%, +96%, +147%, +109%).
 
-## Usage
+#### Reproduce each result
+
+Each headline result, the script that re-derives it from the released logs (after the Quickstart
+staging), and the file it reads. The paper is archived under the concept DOI
+[10.5281/zenodo.21149156](https://doi.org/10.5281/zenodo.21149156).
+
+| Result in the paper | Command | Reads |
+|---|---|---|
+| Isolation tables: load moves drift, an implicit instruction does not explain it | `python code/analyze_isolation.py` | the four `data/ideas_*_isolation.jsonl` |
+| Frontier tables: drift saturates within a few hundred tokens | `python code/analyze_frontier.py` | `data/ideas_frontier_gemma2-9b.jsonl`, `data/ideas_frontier_claude-fable-5.jsonl` |
+| Figures 1 to 3, including the +49% to +147% cross-family gains | `python code/make_figures.py` | the four isolation and two frontier logs |
+| gemma2 judge against opus judge | `python code/compare_judges.py` | the same six logs |
+| Human rater against both judges (r = -0.12 with opus, 0.00 with gemma2; means 0.45, 0.85, 0.77) | correlate `grounded_human` with `grounded_strong` and `grounded` (`merge_human_rating.py` prints this, but needs the unreleased `_key.json`) | `data/ideas_frontier_claude-fable-5.jsonl`, 54 rated rows |
+
+The last row was recomputed directly from the released log fields on 2026-10-22 and matches the
+paper.
+
+#### Usage
 
 The generators (each logs the JSONL schema the analysis scripts read). They also expect the
 `saluca/` layout, so stage it first:
@@ -147,7 +194,7 @@ Judging and human rating:
   `human_rating/RATING_INSTRUCTIONS.md` is the rubric and `human_rating/rate_me.csv` the rated
   sheet.
 
-## Architecture
+#### Architecture
 
 The isolation design generates four conditions per domain and seed (`plain`, `content`,
 `instruction`, `functional`) to separate load from instruction; the frontier design injects an
@@ -156,18 +203,56 @@ groundedness and divergence against load. Novelty is embedding drift from the do
 centroid; groundedness is an LLM judge score, cross-checked by a stronger judge and a blinded
 human rater.
 
+The full pipeline, from generation to figures, traced from the scripts' read and write paths. Paths
+under `data/raw_logs_saluca/` and `saluca/` are the staged layout; the release keeps flat copies
+in `data/` and `code/references.json`.
+
 ```mermaid
 flowchart LR
-  G1[creativity_ratio.py<br/>run_claude_cli.py] -->|isolation logs| D[(data/*.jsonl)]
-  G2[run_frontier.py<br/>run_frontier_claude.py] -->|frontier logs| D
-  REF[references.json] --> G2
-  D --> A1[analyze_isolation.py]
-  D --> A2[analyze_frontier.py]
-  D --> J[re_judge.py / compare_judges.py]
-  D --> H[export / merge_human_rating.py]
-  D --> F[make_figures.py] --> FIG[figures/*.png]
-  E[(Ollama nomic-embed-text)] --> A1 & A2 & F
+    BR["build_reference.py"] --> REF["saluca/references.json"]
+    REF --> RF["run_frontier.py"]
+    REF --> RFC["run_frontier_claude.py"]
+    CR["creativity_ratio.py"] --> LOGS[("data/raw_logs_saluca/creativity/ JSONL logs, one row per idea")]
+    RCC["run_claude_cli.py"] --> LOGS
+    RF --> LOGS
+    RFC --> LOGS
+    LOGS <-->|"adds grounded_strong"| RJ["re_judge.py"]
+    LOGS --> EX["export_human_rating.py"]
+    EX -->|"rate_me.csv, _key.json"| MG["merge_human_rating.py"]
+    MG -->|"adds grounded_human"| LOGS
+    LOGS --> AN["analyze_isolation.py, analyze_frontier.py, analyze_creativity.py, compare_judges.py"]
+    LOGS --> MF["make_figures.py"]
+    AN --> OUT["stdout tables"]
+    MF --> FIG["saluca/paper/figures/*.png"]
 ```
+
+| Script | Reads | Writes | Model calls |
+|---|---|---|---|
+| `build_reference.py` | nothing | `saluca/references.json` | gemma2:9b via Ollama |
+| `creativity_ratio.py` | nothing | `ideas_PROVIDER_MODEL_LOADTYPE.jsonl` | generator and judge via Ollama or an OpenAI-compatible provider |
+| `run_claude_cli.py` | `saluca/creativity_ratio.py` (prompts and judge) | `ideas_claude_cli_MODEL_isolation.jsonl` | `claude -p`; judge gemma2:9b via Ollama |
+| `run_frontier.py` | `saluca/references.json` | `frontier/ideas_frontier_MODEL.jsonl` | generator and judge via Ollama |
+| `run_frontier_claude.py` | `saluca/references.json` | `frontier/ideas_frontier_MODEL.jsonl` | `claude -p`; judge gemma2:9b via Ollama |
+| `re_judge.py` | the six isolation and frontier logs | the same logs, with `grounded_strong` | `claude -p` (opus by default) |
+| `export_human_rating.py` | the Fable frontier log (all six with `--all`) | `human_rating/rate_me.csv`, `human_rating/_key.json` | none |
+| `merge_human_rating.py` | `rate_me.csv`, `_key.json` | the source logs, with `grounded_human` | none |
+| `analyze_isolation.py` | `ideas_*_isolation.jsonl` | stdout | embeddings via Ollama |
+| `analyze_frontier.py` | `frontier/ideas_frontier_*.jsonl` | stdout | embeddings via Ollama |
+| `analyze_creativity.py` | every `ideas_*.jsonl` in the creativity folder (written for the pad and functional sweeps) | stdout | embeddings via Ollama |
+| `compare_judges.py` | the six isolation and frontier logs | stdout | none |
+| `make_figures.py` | the six isolation and frontier logs | `saluca/paper/figures/fig1..fig3` | embeddings via Ollama |
+
+Log and `human_rating/` paths in the table are under `data/raw_logs_saluca/creativity/`.
+
+Every generator also scores groundedness as it goes, through Ollama's OpenAI-compatible endpoint
+(`http://localhost:11434/v1`). `run_claude_cli.py` and `run_frontier_claude.py` judge with
+gemma2:9b; `creativity_ratio.py` (unless `--judge` is given) and `run_frontier.py` judge with the
+generating model, gemma2:9b for the released local runs. The logs do not record the judge model.
+
+`merge_human_rating.py` needs the private `_key.json` that `export_human_rating.py` writes. It is
+not released, so the human pass cannot be re-merged from this clone; its result (`grounded_human`)
+is already in the released Fable frontier log, and the released `human_rating/rate_me.csv` is the
+sheet that was rated.
 
 Contents:
 
@@ -180,10 +265,25 @@ Contents:
   author's deposit tooling and record of the published deposit; they are not part of the study.
 
 `code/smoke_local.py`, `code/run_confound.py` and `code/analyze_confound.py` belong to the
-companion world-model-collapse confound study referenced in the paper's introduction. They import
-a `src` package that is not in this repository and do not run here.
+companion world-model-collapse confound study referenced in the paper's introduction.
+`smoke_local.py` and `run_confound.py` import a `src` package that is not in this repository and
+do not run here. `analyze_confound.py` needs no `src`, but it reads
+`data/raw_logs_saluca/confound/step_*.jsonl`, which is not released, so it prints "No step logs"
+and exits. `code/_smoke_cloud.py` is a feasibility probe for a cloud model, not part of the study's
+results.
 
-## Screenshots
+What an agent can and cannot reach from this clone:
+
+| Part | In this repo | Where it is |
+|---|---|---|
+| Harness, analysis and figure scripts, released logs, figures, preprint, rating sheet | yes | `code/`, `data/`, `figures/`, `paper.*`, `human_rating/` |
+| The `src` package the confound scripts import | no | not in this repository, and its location is not recorded here |
+| The confound study's step logs | no | not released |
+| `_key.json` for the human rating | no | private by design (it unblinds the sheet) |
+| Ollama models (`nomic-embed-text`, `gemma2:9b`) and the Claude CLI | no | external tools you install |
+| The archived preprint | no | Zenodo, concept DOI 10.5281/zenodo.21149156 |
+
+#### Screenshots
 
 The three figures as released (they regenerate from `data/` with the Quickstart):
 
@@ -193,7 +293,7 @@ The three figures as released (they regenerate from `data/` with the Quickstart)
 
 ![Two line charts: drift against injected tokens for gemma2:9b and Fable, saturating within a few hundred tokens; and groundedness against load for the opus judge, gemma2 judge and the human rater](figures/fig3_frontier.png)
 
-## Citation
+#### Citation
 
 Ruvalcaba, C. and the Saluca Agentic AI Research Team (2026). *Relevant Context-Load as a
 Saturating Novelty Knob in Language Models: A Cross-Family Study.* Zenodo.
@@ -203,142 +303,240 @@ That is the concept DOI, which always resolves to the latest version. This READM
 the version 1 DOI, 10.5281/zenodo.21149157, which remains valid for that version. See
 [`CITATION.cff`](CITATION.cff).
 
-## License
+#### License
 
 The repository's [`LICENSE`](LICENSE) is Apache-2.0 (added 2026-08-18) and does not carve out
 the data, figures or paper. The Zenodo record of the preprint is published under CC-BY-4.0.
 
-## Links
+#### Links
 
 - Preprint: https://doi.org/10.5281/zenodo.21149156 (concept DOI)
 - Zenodo record, version 1: https://zenodo.org/records/21149157
 
 _Last updated: 2026-10-22_
 
-
 ## paper.md
 
-# Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study
+### Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study
 
 **Authors:** Cristian Ruvalcaba and the Saluca Agentic AI Research Team · Saluca Labs · cristian@saluca.com
-**Draft  -  preprint, 2 July 2026.**
+**Draft — preprint, 2 July 2026.**
 
 ---
 
-## Abstract
+#### Abstract
 
-Does the amount of *relevant context* placed in a language model's window act as a knob on the **novelty** of its output, and if so is there an optimal input-to-window ratio? We test this with a controlled ideation task, embedding-based novelty and groundedness metrics, and four models spanning two orders of magnitude of capability (a 9-billion-parameter open model through a frontier model). We find three things. **(1)** Injecting relevant material as neutral reference  -  with *no* instruction to be original  -  reliably pushes ideation off the mainstream answer, and the effect replicates across every model family tested (+49% to +147% over an unprompted baseline) while groundedness is largely preserved. An isolation design rules out the obvious confound that the effect is merely the model obeying an implicit "be different" instruction. **(2)** The effect is a **saturating switch, not a tunable dial**: novelty rises over the first few hundred tokens of relevant context and then plateaus. There is no optimal ratio  -  the saturation is an *absolute* threshold of a few hundred tokens, which is 15% of a 4K window but a negligible 0.15% of a 200K window. **(3)** This threshold is essentially **invariant to model scale**; if anything the stronger model saturates *sooner* (~300 vs ~800 tokens), extracting the full benefit from less context, and is more anchored at baseline. The practical implication is clean: a few hundred tokens of relevant context captures the novelty benefit, and more adds nothing. A blinded human-rating pass finds groundedness **flat across the entire load range**  -  no coherence cost from load  -  and, in doing so, exposes a methodological caution worth its own emphasis: two automated groundedness judges (a fast local model and a strong frontier model) correlate **near zero** with the human rater (r = −0.12 and 0.00) and are systematically lenient (means 0.85 and 0.77 vs the human's 0.45), and they even disagree with each other on the load trend. Absolute groundedness scores from any single LLM judge should therefore be distrusted; only the *load-invariance*  -  on which the human and the weak judge agree  -  is robust. We stress that all evaluation here rests on automated proxies plus a single generalist human rater; authoritative judgment of the ideas' quality, originality, and field-specific soundness would require **domain experts** in each area (a sleep scientist, product and business practitioners), which we flag as the essential next step  -  our metrics establish the *load-response shape*, not expert-graded creative value. All code, prompts, and data are released.
+Does the amount of *relevant context* placed in a language model's window act as a knob on the **novelty** of its output, and if so is there an optimal input-to-window ratio? We test this with a controlled ideation task, embedding-based novelty and groundedness metrics, and four models spanning two orders of magnitude of capability (a 9-billion-parameter open model through a frontier model). We find three things. **(1)** Injecting relevant material as neutral reference — with *no* instruction to be original — reliably pushes ideation off the mainstream answer, and the effect replicates across every model family tested (+49% to +147% over an unprompted baseline) while groundedness is largely preserved. An isolation design rules out the obvious confound that the effect is merely the model obeying an implicit "be different" instruction. **(2)** The effect is a **saturating switch, not a tunable dial**: novelty rises over the first few hundred tokens of relevant context and then plateaus. There is no optimal ratio — the saturation is an *absolute* threshold of a few hundred tokens, which is 15% of a 4K window but a negligible 0.15% of a 200K window. **(3)** This threshold is essentially **invariant to model scale**; if anything the stronger model saturates *sooner* (~300 vs ~800 tokens), extracting the full benefit from less context, and is more anchored at baseline. The practical implication is clean: a few hundred tokens of relevant context captures the novelty benefit, and more adds nothing. A blinded human-rating pass finds groundedness **flat across the entire load range** — no coherence cost from load — and, in doing so, exposes a methodological caution worth its own emphasis: two automated groundedness judges (a fast local model and a strong frontier model) correlate **near zero** with the human rater (r = −0.12 and 0.00) and are systematically lenient (means 0.85 and 0.77 vs the human's 0.45), and they even disagree with each other on the load trend. Absolute groundedness scores from any single LLM judge should therefore be distrusted; only the *load-invariance* — on which the human and the weak judge agree — is robust. We stress that all evaluation here rests on automated proxies plus a single generalist human rater; authoritative judgment of the ideas' quality, originality, and field-specific soundness would require **domain experts** in each area (a sleep scientist, product and business practitioners), which we flag as the essential next step — our metrics establish the *load-response shape*, not expert-graded creative value. All code, prompts, and data are released.
 
-## 1. Introduction
+#### 1. Introduction
 
-A companion line of work began with a replication of a recent claim about "world-model collapse" in long-horizon language agents. We found that the paper's stress axis conflated two variables  -  the *number of entities* in a task and the *token-length* of the state description  -  and that token-length alone was a sufficient, independent driver of the reported degradation. That result reframed context-length not as an incidental cost but as an active force on model behavior, and raised a sharper question: if long context *degrades* fidelity in a tracking task, might it also *change* the character of generative output  -  specifically, its novelty?
+A companion line of work began with a replication of a recent claim about "world-model collapse" in long-horizon language agents. We found that the paper's stress axis conflated two variables — the *number of entities* in a task and the *token-length* of the state description — and that token-length alone was a sufficient, independent driver of the reported degradation. That result reframed context-length not as an incidental cost but as an active force on model behavior, and raised a sharper question: if long context *degrades* fidelity in a tracking task, might it also *change* the character of generative output — specifically, its novelty?
 
-The intuition is an "edge-of-chaos" one: perhaps loading the context perturbs the model's high-probability, conventional response toward the fringe, and there exists an optimal load  -  a ratio of input to window  -  that maximizes novel-but-grounded output before coherence breaks down. This paper tests that intuition directly and reports where it holds, where it fails, and the clean empirical picture that replaces it.
+The intuition is an "edge-of-chaos" one: perhaps loading the context perturbs the model's high-probability, conventional response toward the fringe, and there exists an optimal load — a ratio of input to window — that maximizes novel-but-grounded output before coherence breaks down. This paper tests that intuition directly and reports where it holds, where it fails, and the clean empirical picture that replaces it.
 
-## 2. Methods
+#### 2. Methods
 
 **Task.** A single fixed ideation prompt across three neutral domains (a testable hypothesis for why biological sleep is necessary; a new note-taking-app feature; a growth strategy for a coffee roaster). Each domain has an obvious "mainstream" answer to diverge from and room for grounded novelty. The model is asked for one original, specific, concrete idea in one or two sentences.
 
 **Load conditions (isolation design).** For each domain and seed we generate four conditions to separate *load* from *instruction*:
-- `plain`  -  the task alone (baseline).
-- `content`  -  a list of mainstream ideas injected as neutral **reference material**, with **no** instruction to differ.
-- `instruction`  -  an explicit "be clearly different from the usual approaches," with **no** list.
-- `functional`  -  both list and instruction.
+- `plain` — the task alone (baseline).
+- `content` — a list of mainstream ideas injected as neutral **reference material**, with **no** instruction to differ.
+- `instruction` — an explicit "be clearly different from the usual approaches," with **no** list.
+- `functional` — both list and instruction.
 If `content` moves output as much as `functional`, the effect is the *load*, not the instruction.
 
-**Frontier (dose-response) design.** We inject an increasing amount of relevant reference text (generated separately, neutral encyclopedic prose)  -  from 0 to several thousand tokens  -  and measure how novelty scales with load. Both models are swept over the *same absolute token loads* so their trajectories are directly comparable.
+**Frontier (dose-response) design.** We inject an increasing amount of relevant reference text (generated separately, neutral encyclopedic prose) — from 0 to several thousand tokens — and measure how novelty scales with load. Both models are swept over the *same absolute token loads* so their trajectories are directly comparable.
 
 **Metrics.** Each idea is embedded (`nomic-embed-text`). **Novelty / off-mainstream drift** = cosine distance of an idea from the baseline (`plain`, or load-0) centroid for its domain. **Divergence** = mean intra-condition pairwise distance (idea diversity). **Groundedness** = a 1–5 rubric score from an independent judge model, rescaled to [0,1], decoupled from the generator to avoid self-evaluation. We score groundedness with *three* judges of increasing authority: a fast local model (`gemma2:9b`) for the full sweep, a stronger model (opus) re-scoring all 390 ideas, and a **blinded human rating** of the decisive Fable-frontier set (54 ideas, shuffled with load/condition hidden). The two LLM judges agree on aggregate level (means 0.833 vs 0.840) but correlate only weakly per idea (r = 0.20). The human is the tiebreaker for the one load-dependent claim; note the human pass is a single rater (n = 1), the best available anchor rather than a panel. (opus is also a generator for one condition-set, making opus-judging-opus rows, 1 of 4 models, mildly self-referential.)
 
 **Models.** Generation: `gemma2:9b` (local), and `claude-haiku`, `claude-opus`, `claude-fable-5` (via the vendor CLI in an isolated configuration). Judge and embeddings: local, held constant across all conditions. Temperature 0.7; groundedness judging at temperature 0.
 
-**Reproducibility notes.** Vendor-CLI generation required an isolated configuration directory (credentials only) and prompt delivery via stdin to prevent host hooks and multi-line truncation from contaminating output  -  a subtlety we document because it silently corrupts naïve setups.
+**Reproducibility notes.** Vendor-CLI generation required an isolated configuration directory (credentials only) and prompt delivery via stdin to prevent host hooks and multi-line truncation from contaminating output — a subtlety we document because it silently corrupts naïve setups.
 
-**Human–agent division of labor.** This study was conducted by a human researcher directing a team of AI agents, and we state the division explicitly for transparency. The **human** originated the research question and the initial hypothesis (context-load as a novelty knob; the input-to-window-ratio framing), made every methodological and go/no-go decision (model selection, budget limits, the decision to pivot the frontier test to a local model when the cloud path proved costly), set the falsification criteria, required that null and disconfirming results be reported plainly, reviewed the outputs, and is accountable for all claims. The **agents** built the experimental harness (generation, judging, metric, and figure code), executed the runs, computed the metrics, generated the figures, drafted the manuscript, and surfaced and diagnosed failure modes (e.g. the configuration-contamination and prompt-truncation issues above)  -  all under human direction and subject to human review. Two design choices in this paper are themselves products of that loop: the isolation design that killed the instruction-confound, and the reframing from "optimal ratio" to "saturation threshold," were proposed by the agents from the data and ratified by the human. No result was accepted without the human review step; the reported nulls (inert-load has no effect; no optimal ratio) survived it.
+**Human–agent division of labor.** This study was conducted by a human researcher directing a team of AI agents, and we state the division explicitly for transparency. The **human** originated the research question and the initial hypothesis (context-load as a novelty knob; the input-to-window-ratio framing), made every methodological and go/no-go decision (model selection, budget limits, the decision to pivot the frontier test to a local model when the cloud path proved costly), set the falsification criteria, required that null and disconfirming results be reported plainly, reviewed the outputs, and is accountable for all claims. The **agents** built the experimental harness (generation, judging, metric, and figure code), executed the runs, computed the metrics, generated the figures, drafted the manuscript, and surfaced and diagnosed failure modes (e.g. the configuration-contamination and prompt-truncation issues above) — all under human direction and subject to human review. Two design choices in this paper are themselves products of that loop: the isolation design that killed the instruction-confound, and the reframing from "optimal ratio" to "saturation threshold," were proposed by the agents from the data and ratified by the human. No result was accepted without the human review step; the reported nulls (inert-load has no effect; no optimal ratio) survived it.
 
-## 3. Results
+#### 3. Results
 
-### 3.1 Relevant load moves ideation off-mainstream  -  and it is the load, not an instruction
+##### 3.1 Relevant load moves ideation off-mainstream — and it is the load, not an instruction
 
-Injecting relevant material as neutral reference (`content`) increases off-mainstream drift over the unprompted `plain` baseline on **every** model: **+49%** (gemma2), **+96%** (haiku), **+147%** (opus), **+109%** (Fable)  -  Figure 1. Crucially this occurs with **no instruction to be original**. In the isolation design (Figure 2), `content` alone moves output comparably to the full `content+instruction` condition on the smaller models, establishing that relevant load  -  not an implicit "be different" command  -  is doing the work. Groundedness is essentially flat across conditions (~0.83), so the movement is *off-mainstream but still plausible*, not a slide into incoherence.
+Injecting relevant material as neutral reference (`content`) increases off-mainstream drift over the unprompted `plain` baseline on **every** model: **+49%** (gemma2), **+96%** (haiku), **+147%** (opus), **+109%** (Fable) — Figure 1. Crucially this occurs with **no instruction to be original**. In the isolation design (Figure 2), `content` alone moves output comparably to the full `content+instruction` condition on the smaller models, establishing that relevant load — not an implicit "be different" command — is doing the work. Groundedness is essentially flat across conditions (~0.83), so the movement is *off-mainstream but still plausible*, not a slide into incoherence.
 
 ![**Figure 1.** Injecting relevant material as neutral reference (no instruction to be original) increases off-mainstream drift over an unprompted baseline on every model tested.](figures/fig1_cross_family.png){width=85%}
 
-![**Figure 2.** Isolation design. `content` (relevant load, no instruction) moves output comparably to the full `content+instruction` condition, establishing that the load  -  not an implicit instruction  -  drives the effect.](figures/fig2_isolation.png){width=90%}
+![**Figure 2.** Isolation design. `content` (relevant load, no instruction) moves output comparably to the full `content+instruction` condition, establishing that the load — not an implicit instruction — drives the effect.](figures/fig2_isolation.png){width=90%}
 
-A capability gradient is visible in the baselines: stronger models have **lower** `plain` drift (0.063 for Fable vs 0.110 for gemma2), i.e. left unprompted they give more consistent, canonical answers  -  and are then moved substantially by context. The strongest model (Fable) is the only one where an explicit instruction slightly out-moves neutral content, suggesting the most capable model is also the most responsive to direct steering; but relevant load moves it regardless.
+A capability gradient is visible in the baselines: stronger models have **lower** `plain` drift (0.063 for Fable vs 0.110 for gemma2), i.e. left unprompted they give more consistent, canonical answers — and are then moved substantially by context. The strongest model (Fable) is the only one where an explicit instruction slightly out-moves neutral content, suggesting the most capable model is also the most responsive to direct steering; but relevant load moves it regardless.
 
-### 3.2 The effect is a saturating switch, not a tunable dial
+##### 3.2 The effect is a saturating switch, not a tunable dial
 
-Sweeping relevant load from zero upward (Figure 3, left), novelty rises steeply over the first few hundred tokens and then **plateaus**. On gemma2 drift jumps from 0.087 to ~0.147 by ~800 tokens and stays flat out to 54% of its 4K window. On Fable drift jumps from 0.068 to ~0.148 by **~300 tokens** and stays flat out to 4,800 tokens. Neither model shows a rising dial or a rise-then-fall "productive band." **There is no optimal input-to-window ratio**: the saturation is an *absolute* quantity of a few hundred tokens, independent of window size  -  15% of gemma2's window but only 0.15% of Fable's.
+Sweeping relevant load from zero upward (Figure 3, left), novelty rises steeply over the first few hundred tokens and then **plateaus**. On gemma2 drift jumps from 0.087 to ~0.147 by ~800 tokens and stays flat out to 54% of its 4K window. On Fable drift jumps from 0.068 to ~0.148 by **~300 tokens** and stays flat out to 4,800 tokens. Neither model shows a rising dial or a rise-then-fall "productive band." **There is no optimal input-to-window ratio**: the saturation is an *absolute* quantity of a few hundred tokens, independent of window size — 15% of gemma2's window but only 0.15% of Fable's.
 
-![**Figure 3.** Frontier dose-response. Left: off-mainstream drift rises over the first few hundred tokens of relevant context and then plateaus on both a 9B model (4K window) and a frontier model (200K window)  -  a saturating switch, not a tunable dial; shaded band marks the ~0–800-token saturation region. Right: groundedness vs load under three judges. The strong LLM judge (opus, orange solid) shows an apparent erosion on the frontier model (0.94 → 0.72); the fast judge (gemma2, dashed) shows it flat; the **blinded human rating (black squares) is flat and far lower (~0.45)**, refuting the erosion and exposing that both LLM judges over-rate and correlate near zero with the human (r = −0.12, 0.00). Only the load-invariance is robust.](figures/fig3_frontier.png){width=100%}
+![**Figure 3.** Frontier dose-response. Left: off-mainstream drift rises over the first few hundred tokens of relevant context and then plateaus on both a 9B model (4K window) and a frontier model (200K window) — a saturating switch, not a tunable dial; shaded band marks the ~0–800-token saturation region. Right: groundedness vs load under three judges. The strong LLM judge (opus, orange solid) shows an apparent erosion on the frontier model (0.94 → 0.72); the fast judge (gemma2, dashed) shows it flat; the **blinded human rating (black squares) is flat and far lower (~0.45)**, refuting the erosion and exposing that both LLM judges over-rate and correlate near zero with the human (r = −0.12, 0.00). Only the load-invariance is robust.](figures/fig3_frontier.png){width=100%}
 
-### 3.3 The saturation threshold is scale-invariant (and if anything earlier for stronger models)
+##### 3.3 The saturation threshold is scale-invariant (and if anything earlier for stronger models)
 
-The two models  -  separated by roughly two orders of magnitude in capability and a 50× difference in context window  -  saturate at the *same absolute scale* of a few hundred tokens. The frontier model saturates **sooner** (~300 vs ~800 tokens), extracting the full novelty benefit from *less* context.
+The two models — separated by roughly two orders of magnitude in capability and a 50× difference in context window — saturate at the *same absolute scale* of a few hundred tokens. The frontier model saturates **sooner** (~300 vs ~800 tokens), extracting the full novelty benefit from *less* context.
 
-Groundedness is where the judges tell a cautionary tale (Figure 3, right). The fast judge rated the Fable frontier flat (~0.78) across load; the strong judge instead showed an *apparent erosion*, from 0.94 at zero context down to 0.72 by ~4,800 tokens. Faced with two automated judges disagreeing on the one load-dependent claim, we ran a **blinded human rating** of all 54 Fable-frontier ideas (load hidden, shuffled) as the tiebreaker. The human verdict is unambiguous: groundedness is **flat across load** (0.42–0.50, no trend). The apparent high-load erosion was an artifact of the strong LLM judge, not a real coherence cost  -  the human sees none.
+Groundedness is where the judges tell a cautionary tale (Figure 3, right). The fast judge rated the Fable frontier flat (~0.78) across load; the strong judge instead showed an *apparent erosion*, from 0.94 at zero context down to 0.72 by ~4,800 tokens. Faced with two automated judges disagreeing on the one load-dependent claim, we ran a **blinded human rating** of all 54 Fable-frontier ideas (load hidden, shuffled) as the tiebreaker. The human verdict is unambiguous: groundedness is **flat across load** (0.42–0.50, no trend). The apparent high-load erosion was an artifact of the strong LLM judge, not a real coherence cost — the human sees none.
 
 The same pass delivers a sharper, more general result. The human rater correlates **near zero** with both automated judges (r = −0.12 with opus, 0.00 with gemma2) and is far harsher in absolute terms (human mean 0.45 vs 0.85 and 0.77). For this kind of sophisticated-but-speculative ideation, LLM groundedness judges neither agree with a human nor with each other on fine structure, and they systematically over-rate. The robust, human-anchored conclusion is therefore the conservative one: **relevant load does not degrade groundedness** across the tested range, and any finer or absolute groundedness claim from a single automated judge is unreliable.
 
-## 4. Discussion
+#### 4. Discussion
 
-The elegant hypothesis  -  an optimal load ratio that maximizes novel-but-grounded output  -  is not supported. What replaces it is arguably more useful and more actionable. **Relevant context is a reliable, cheap, one-shot nudge off the conventional answer**: a few hundred tokens delivers essentially the whole novelty effect, more delivers nothing further, and  -  per the human-anchored evidence  -  none of it degrades groundedness across the tested range. Because the novelty threshold is absolute rather than a fraction of the window, the era of very large context windows does not change the calculus: filling the window buys no additional novelty. That stronger models saturate *earlier* fits a simple reading  -  a more capable model integrates the relevant signal faster  -  and it means the "just add more context for more creativity" instinct is simply wrong on frontier systems.
+The elegant hypothesis — an optimal load ratio that maximizes novel-but-grounded output — is not supported. What replaces it is arguably more useful and more actionable. **Relevant context is a reliable, cheap, one-shot nudge off the conventional answer**: a few hundred tokens delivers essentially the whole novelty effect, more delivers nothing further, and — per the human-anchored evidence — none of it degrades groundedness across the tested range. Because the novelty threshold is absolute rather than a fraction of the window, the era of very large context windows does not change the calculus: filling the window buys no additional novelty. That stronger models saturate *earlier* fits a simple reading — a more capable model integrates the relevant signal faster — and it means the "just add more context for more creativity" instinct is simply wrong on frontier systems.
 
-A second contribution emerged from the verification process itself. We initially reported a high-load groundedness erosion on the frontier model, on the strength of a strong LLM judge; a blinded human pass refuted it, and revealed that the LLM judges  -  fast and strong alike  -  correlate near zero with human groundedness ratings and over-rate systematically. This is a cautionary result for the now-common practice of "LLM-as-judge" evaluation of open-ended generation: on speculative ideation, an automated groundedness judge can manufacture a clean, plausible, entirely spurious trend that survives until a human looks. The layered protocol that caught it  -  cheap judge, strong judge, then human tiebreaker on the single disputed claim  -  is cheap insurance we would recommend by default.
+A second contribution emerged from the verification process itself. We initially reported a high-load groundedness erosion on the frontier model, on the strength of a strong LLM judge; a blinded human pass refuted it, and revealed that the LLM judges — fast and strong alike — correlate near zero with human groundedness ratings and over-rate systematically. This is a cautionary result for the now-common practice of "LLM-as-judge" evaluation of open-ended generation: on speculative ideation, an automated groundedness judge can manufacture a clean, plausible, entirely spurious trend that survives until a human looks. The layered protocol that caught it — cheap judge, strong judge, then human tiebreaker on the single disputed claim — is cheap insurance we would recommend by default.
 
-The result also refines the framing that motivated it. Long context is an *active* force on model output  -  it moved every model here  -  but its effect on generative novelty is bounded and benign, in contrast to its unbounded, degrading effect on long-horizon state-tracking fidelity. The same variable is a hazard in one regime and a mild, saturating tool in another.
+The result also refines the framing that motivated it. Long context is an *active* force on model output — it moved every model here — but its effect on generative novelty is bounded and benign, in contrast to its unbounded, degrading effect on long-horizon state-tracking fidelity. The same variable is a hazard in one regime and a mild, saturating tool in another.
 
-## 5. Limitations
+#### 5. Limitations
 
-The novelty metric is embedding-drift from a conventional centroid  -  a proxy for *off-mainstream*, not a judgment of genuine originality or value. Groundedness proved judge-sensitive and, on the evidence here, LLM judges are poor proxies for human groundedness on speculative ideation (near-zero human correlation, systematic over-rating); we anchor the load-invariance claim on the human pass, but that pass is a **single, non-expert generalist rating one model's frontier set (n = 1 × 54)**  -  the best available tiebreaker, not a panel, and it does not calibrate absolute groundedness across all conditions.
+The novelty metric is embedding-drift from a conventional centroid — a proxy for *off-mainstream*, not a judgment of genuine originality or value. Groundedness proved judge-sensitive and, on the evidence here, LLM judges are poor proxies for human groundedness on speculative ideation (near-zero human correlation, systematic over-rating); we anchor the load-invariance claim on the human pass, but that pass is a **single, non-expert generalist rating one model's frontier set (n = 1 × 54)** — the best available tiebreaker, not a panel, and it does not calibrate absolute groundedness across all conditions.
 
-Most importantly, both dimensions would be best judged by **domain experts in the relevant field**  -  a sleep neuroscientist for the sleep hypotheses, product designers and business practitioners for the note-app and coffee-roaster ideas. Only a domain expert can reliably separate a genuinely novel and viable idea from one that is superficially fresh but unsound, already known, or trivially recombined; and groundedness in a specialized field is itself expert territory (our generalist human necessarily rates plausibility, not correctness). Our embedding and human proxies establish the *load-response shape*  -  that relevant context nudges output off the conventional answer, and where that effect saturates  -  but not the expert-graded quality, originality, or field-specific soundness of the ideas themselves. Interpreting the drift as *creativity of value*, rather than as measured distance-from-mainstream, awaits a multi-rater, domain-expert evaluation across each field. The novelty results as reported (the drift shape) are judge-independent; sample sizes are otherwise modest (n = 9–30 per cell). The reference material is model-generated neutral prose; adversarially chosen or misleading context is untested. The frontier sweep on the small model was capped at 54% of its window by overflow; we did not probe the >54% regime on a small window, though the frontier model's flat trajectory to a low window-fraction argues against a late re-climb. Finally, four models and three domains, while spanning wide capability, are not exhaustive; families beyond those tested (and non-reasoning vs reasoning variants) remain open.
+Most importantly, both dimensions would be best judged by **domain experts in the relevant field** — a sleep neuroscientist for the sleep hypotheses, product designers and business practitioners for the note-app and coffee-roaster ideas. Only a domain expert can reliably separate a genuinely novel and viable idea from one that is superficially fresh but unsound, already known, or trivially recombined; and groundedness in a specialized field is itself expert territory (our generalist human necessarily rates plausibility, not correctness). Our embedding and human proxies establish the *load-response shape* — that relevant context nudges output off the conventional answer, and where that effect saturates — but not the expert-graded quality, originality, or field-specific soundness of the ideas themselves. Interpreting the drift as *creativity of value*, rather than as measured distance-from-mainstream, awaits a multi-rater, domain-expert evaluation across each field. The novelty results as reported (the drift shape) are judge-independent; sample sizes are otherwise modest (n = 9–30 per cell). The reference material is model-generated neutral prose; adversarially chosen or misleading context is untested. The frontier sweep on the small model was capped at 54% of its window by overflow; we did not probe the >54% regime on a small window, though the frontier model's flat trajectory to a low window-fraction argues against a late re-climb. Finally, four models and three domains, while spanning wide capability, are not exhaustive; families beyond those tested (and non-reasoning vs reasoning variants) remain open.
 
-## 6. Reproducibility
+#### 6. Reproducibility
 
 All prompts, per-idea logs, the reference corpora, generation/judging/figure code, and the isolated-CLI configuration recipe are released at `github.com/saluca-labs/context-load-novelty`. Novelty and groundedness are computed by released scripts from the raw idea logs; figures regenerate from those logs directly.
 
-## Acknowledgements
+#### Acknowledgements
 
 Per Saluca Labs practice, the Saluca Agentic AI Research Team (agents operating within the lead author's research harness, on Anthropic Claude models) is credited in the byline for its role in design, execution, and drafting. All results derive from local execution and released data; the lead author is responsible for the claims.
 
-
 ## human_rating/RATING_INSTRUCTIONS.md
 
-# Human groundedness-rating pass
+### Human groundedness-rating pass
 
 **Goal:** settle whether groundedness really erodes with context-load on the frontier
 model. The automated judges disagreed (opus: yes, 0.94→0.72; gemma2: flat) and they
-correlate only r=0.20, so a human rating is the tiebreaker. The sheet is **blinded**  - 
-the load/condition is hidden and the ideas are shuffled  -  so you can't bias toward the
+correlate only r=0.20, so a human rating is the tiebreaker. The sheet is **blinded** —
+the load/condition is hidden and the ideas are shuffled — so you can't bias toward the
 expected answer.
 
-## How to rate
+#### How to rate
 1. Open `rate_me.csv` (Excel / Sheets / any editor).
 2. For each row, read the `idea` and put a **1–5** integer in `groundedness_1to5`.
 3. Save (keep it as CSV).
 4. Run: `python saluca\merge_human_rating.py`
 
-## The rubric  -  rate GROUNDEDNESS only, NOT novelty
-Ask: *"Is this plausible, coherent, and concrete  -  could it be real?"* Do **not** reward or
+#### The rubric — rate GROUNDEDNESS only, NOT novelty
+Ask: *"Is this plausible, coherent, and concrete — could it be real?"* Do **not** reward or
 penalize how original/surprising it is; a boring idea can be perfectly grounded, and a wild
 idea can be grounded if it's internally coherent and not physically absurd.
 
-- **5**  -  solid: plausible, specific, mechanistically coherent, could be a real hypothesis/feature/strategy.
-- **4**  -  mostly solid: plausible with a minor stretch or vagueness.
-- **3**  -  mixed: plausible in parts but hand-wavy, over-general, or one questionable leap.
-- **2**  -  shaky: mostly implausible, confused, or internally inconsistent.
-- **1**  -  nonsense: far-fetched, incoherent, or physically/logically absurd.
+- **5** — solid: plausible, specific, mechanistically coherent, could be a real hypothesis/feature/strategy.
+- **4** — mostly solid: plausible with a minor stretch or vagueness.
+- **3** — mixed: plausible in parts but hand-wavy, over-general, or one questionable leap.
+- **2** — shaky: mostly implausible, confused, or internally inconsistent.
+- **1** — nonsense: far-fetched, incoherent, or physically/logically absurd.
 
 Rate on the idea's own terms within its domain (a sleep hypothesis, a note-app feature,
 a coffee-roaster strategy). ~54 ideas; ~10–15 minutes.
 
-## What happens next
+#### What happens next
 `merge_human_rating.py` writes your scores back as `grounded_human`, then prints the
 Fable-frontier groundedness **by load** for all three judges (human / opus / gemma2) and
 the human-vs-model correlations. If human-rated groundedness **declines with load**, it
 corroborates opus and the paper's erosion claim stands (and firms up). If it stays **flat**,
 opus over-read it and we soften the claim further. Either way we then note the human pass
 in the paper and re-push.
+
+## AGENTS.md
+
+### AGENTS.md
+
+Instructions for AI coding agents working in this repository.
+
+#### What this is
+
+The paper package behind a published preprint: the harness, raw per-idea logs, figures and paper
+for a cross-family study of relevant context-load and LLM idea novelty. It is a research record,
+not a library, and its scripts expect a staged directory layout before they run.
+
+#### Read in this order
+
+1. `README.md`: the correction note, the "How it works" diagram, the Quickstart staging steps, and
+   "Reproduce each result".
+2. `paper.md`: what the study claims and how it measured it.
+3. `code/analyze_isolation.py`, `code/analyze_frontier.py`, `code/make_figures.py`: the analysis
+   that re-derives the results from `data/`.
+4. `code/creativity_ratio.py`, `code/run_frontier.py`: how the logs were generated.
+5. `human_rating/RATING_INSTRUCTIONS.md`: the blinded groundedness rubric.
+
+#### What you can and cannot see
+
+- You can see every script, every released log, the figures, the paper and the rated sheet.
+- You cannot see the `src` package that `code/smoke_local.py` and `code/run_confound.py` import,
+  the confound study's step logs, or `_key.json` for the human rating. None of them is released.
+- Analysis needs a local Ollama with `nomic-embed-text`. Generation also needs `gemma2:9b`, and
+  the Claude scripts need the Claude CLI; their `CLAUDE = ...` path is the original author's
+  machine and must be edited.
+
+#### The only numbers to trust
+
+- Drift, divergence and groundedness per condition and per load: what `analyze_isolation.py` and
+  `analyze_frontier.py` print from the staged `data/` logs (README Quickstart shows the
+  2026-10-22 output).
+- Cross-family gains (+49%, +96%, +147%, +109%): `figures/fig1_cross_family.png`, regenerated by
+  `make_figures.py`.
+- Human against judge groundedness (r = -0.12 and 0.00; means 0.45, 0.85, 0.77): the
+  `grounded_human`, `grounded_strong` and `grounded` fields of
+  `data/ideas_frontier_claude-fable-5.jsonl`.
+- Citation: the concept DOI 10.5281/zenodo.21149156, never the version DOI.
+
+#### Quickstart
+
+```bash
+mkdir -p data/raw_logs_saluca/creativity/frontier saluca/paper/figures
+cp data/ideas_*_isolation.jsonl data/raw_logs_saluca/creativity/
+cp data/ideas_frontier_*.jsonl data/raw_logs_saluca/creativity/frontier/
+python code/analyze_isolation.py
+```
+
+#### Setup
+
+```bash
+pip install numpy requests matplotlib openai
+ollama pull nomic-embed-text
+# the scripts expect a parent-checkout layout; stage it (these paths are not tracked)
+mkdir -p data/raw_logs_saluca/creativity/frontier saluca/paper/figures
+cp data/ideas_*_isolation.jsonl data/raw_logs_saluca/creativity/
+cp data/ideas_frontier_*.jsonl data/raw_logs_saluca/creativity/frontier/
+```
+
+#### Test
+
+There is no test suite. The check that the analysis still reproduces the paper:
+
+```bash
+python code/analyze_isolation.py
+python code/analyze_frontier.py
+python code/make_figures.py
+```
+
+Passing looks like the isolation tables for the four models (gemma2:9b content drift 0.164
+against plain 0.110), the frontier tables for gemma2-9b and claude-fable-5, and three figures in
+`saluca/paper/figures/` that match `figures/`.
+
+#### Conventions
+
+- Python 3, numpy, requests, matplotlib, openai. Do not add dependencies without a reason.
+- No em-dashes in docs.
+- If a script's read or write paths change, update the README diagrams and the script table in
+  the same change.
+- If a doc changes, regenerate `llms-full.txt` in the same change or delete it.
+
+#### Do not
+
+- Edit `data/`, `figures/`, `human_rating/rate_me.csv`, `paper.md` or `paper.pdf`: they are the
+  released record behind a published Zenodo preprint.
+- Run `re_judge.py` or `merge_human_rating.py` against the staged logs and commit the result: both
+  rewrite the logs in place.
+- Commit the staged `data/raw_logs_saluca/` or `saluca/` directories.
+- Run `deposit_zenodo.py`. It is the author's deposit tooling; deposits are made by the author.
+- Commit secrets, hostnames, internal paths or personal emails.
+
+#### Done means
+
+The three Test commands run from a staged clean clone and the README still matches what the code
+on `main` does.

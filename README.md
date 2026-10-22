@@ -6,6 +6,35 @@ want to check or extend the result.
 
 **Published:** Zenodo, concept DOI [10.5281/zenodo.21149156](https://doi.org/10.5281/zenodo.21149156) (saluca community, CC-BY-4.0). Preprint, not peer-reviewed.
 
+## How it works
+
+Re-analysing the released logs, which is what the Quickstart does. Every box is a file or script on
+this branch; every arrow is a read, a write or a copy that the code performs. The staged paths are
+the ones hard-coded in the scripts (`ROOT / "data" / "raw_logs_saluca" / "creativity"` and
+`ROOT / "saluca" / "paper" / "figures"`).
+
+```mermaid
+flowchart LR
+    REL["data/ (released logs): 4 isolation files, 2 frontier files"] -->|"cp, Quickstart step 1"| ISO["data/raw_logs_saluca/creativity/ (isolation logs)"]
+    REL -->|"cp, Quickstart step 1"| FRO["data/raw_logs_saluca/creativity/frontier/ (frontier logs)"]
+    ISO --> AI["code/analyze_isolation.py"]
+    FRO --> AF["code/analyze_frontier.py"]
+    ISO --> MF["code/make_figures.py"]
+    FRO --> MF
+    EMB["Ollama /api/embed, nomic-embed-text"] -->|"one vector per idea"| AI
+    EMB --> AF
+    EMB --> MF
+    AI --> T1["stdout: grounded, drift, diverge per condition"]
+    AF --> T2["stdout: grounded, drift, diverge per load"]
+    MF --> FIG["saluca/paper/figures/fig1_cross_family.png, fig2_isolation.png, fig3_frontier.png"]
+```
+
+Novelty (drift) is computed at analysis time from the embeddings, so it needs Ollama. Groundedness
+is read from fields already in the released logs: `grounded` (gemma2 judge), `grounded_strong`
+(opus judge, added by `re_judge.py`) and, for the Fable frontier rows only, `grounded_human`
+(added by `merge_human_rating.py`). How those logs were produced is in
+[Architecture](#architecture).
+
 ## Status
 
 Research artifact, published 2026-07-03 as version 1 of the Zenodo record. The released logs in
@@ -102,6 +131,23 @@ and of `analyze_frontier.py`:
 The regenerated `fig1_cross_family.png` and `fig3_frontier.png` were compared by eye with the
 committed `figures/` and match (same values and labels: +49%, +96%, +147%, +109%).
 
+## Reproduce each result
+
+Each headline result, the script that re-derives it from the released logs (after the Quickstart
+staging), and the file it reads. The paper is archived under the concept DOI
+[10.5281/zenodo.21149156](https://doi.org/10.5281/zenodo.21149156).
+
+| Result in the paper | Command | Reads |
+|---|---|---|
+| Isolation tables: load moves drift, an implicit instruction does not explain it | `python code/analyze_isolation.py` | the four `data/ideas_*_isolation.jsonl` |
+| Frontier tables: drift saturates within a few hundred tokens | `python code/analyze_frontier.py` | `data/ideas_frontier_gemma2-9b.jsonl`, `data/ideas_frontier_claude-fable-5.jsonl` |
+| Figures 1 to 3, including the +49% to +147% cross-family gains | `python code/make_figures.py` | the four isolation and two frontier logs |
+| gemma2 judge against opus judge | `python code/compare_judges.py` | the same six logs |
+| Human rater against both judges (r = -0.12 with opus, 0.00 with gemma2; means 0.45, 0.85, 0.77) | correlate `grounded_human` with `grounded_strong` and `grounded` (`merge_human_rating.py` prints this, but needs the unreleased `_key.json`) | `data/ideas_frontier_claude-fable-5.jsonl`, 54 rated rows |
+
+The last row was recomputed directly from the released log fields on 2026-10-22 and matches the
+paper.
+
 ## Usage
 
 The generators (each logs the JSONL schema the analysis scripts read). They also expect the
@@ -145,18 +191,56 @@ groundedness and divergence against load. Novelty is embedding drift from the do
 centroid; groundedness is an LLM judge score, cross-checked by a stronger judge and a blinded
 human rater.
 
+The full pipeline, from generation to figures, traced from the scripts' read and write paths. Paths
+under `data/raw_logs_saluca/` and `saluca/` are the staged layout; the release keeps flat copies
+in `data/` and `code/references.json`.
+
 ```mermaid
 flowchart LR
-  G1[creativity_ratio.py<br/>run_claude_cli.py] -->|isolation logs| D[(data/*.jsonl)]
-  G2[run_frontier.py<br/>run_frontier_claude.py] -->|frontier logs| D
-  REF[references.json] --> G2
-  D --> A1[analyze_isolation.py]
-  D --> A2[analyze_frontier.py]
-  D --> J[re_judge.py / compare_judges.py]
-  D --> H[export / merge_human_rating.py]
-  D --> F[make_figures.py] --> FIG[figures/*.png]
-  E[(Ollama nomic-embed-text)] --> A1 & A2 & F
+    BR["build_reference.py"] --> REF["saluca/references.json"]
+    REF --> RF["run_frontier.py"]
+    REF --> RFC["run_frontier_claude.py"]
+    CR["creativity_ratio.py"] --> LOGS[("data/raw_logs_saluca/creativity/ JSONL logs, one row per idea")]
+    RCC["run_claude_cli.py"] --> LOGS
+    RF --> LOGS
+    RFC --> LOGS
+    LOGS <-->|"adds grounded_strong"| RJ["re_judge.py"]
+    LOGS --> EX["export_human_rating.py"]
+    EX -->|"rate_me.csv, _key.json"| MG["merge_human_rating.py"]
+    MG -->|"adds grounded_human"| LOGS
+    LOGS --> AN["analyze_isolation.py, analyze_frontier.py, analyze_creativity.py, compare_judges.py"]
+    LOGS --> MF["make_figures.py"]
+    AN --> OUT["stdout tables"]
+    MF --> FIG["saluca/paper/figures/*.png"]
 ```
+
+| Script | Reads | Writes | Model calls |
+|---|---|---|---|
+| `build_reference.py` | nothing | `saluca/references.json` | gemma2:9b via Ollama |
+| `creativity_ratio.py` | nothing | `ideas_PROVIDER_MODEL_LOADTYPE.jsonl` | generator and judge via Ollama or an OpenAI-compatible provider |
+| `run_claude_cli.py` | `saluca/creativity_ratio.py` (prompts and judge) | `ideas_claude_cli_MODEL_isolation.jsonl` | `claude -p`; judge gemma2:9b via Ollama |
+| `run_frontier.py` | `saluca/references.json` | `frontier/ideas_frontier_MODEL.jsonl` | generator and judge via Ollama |
+| `run_frontier_claude.py` | `saluca/references.json` | `frontier/ideas_frontier_MODEL.jsonl` | `claude -p`; judge gemma2:9b via Ollama |
+| `re_judge.py` | the six isolation and frontier logs | the same logs, with `grounded_strong` | `claude -p` (opus by default) |
+| `export_human_rating.py` | the Fable frontier log (all six with `--all`) | `human_rating/rate_me.csv`, `human_rating/_key.json` | none |
+| `merge_human_rating.py` | `rate_me.csv`, `_key.json` | the source logs, with `grounded_human` | none |
+| `analyze_isolation.py` | `ideas_*_isolation.jsonl` | stdout | embeddings via Ollama |
+| `analyze_frontier.py` | `frontier/ideas_frontier_*.jsonl` | stdout | embeddings via Ollama |
+| `analyze_creativity.py` | every `ideas_*.jsonl` in the creativity folder (written for the pad and functional sweeps) | stdout | embeddings via Ollama |
+| `compare_judges.py` | the six isolation and frontier logs | stdout | none |
+| `make_figures.py` | the six isolation and frontier logs | `saluca/paper/figures/fig1..fig3` | embeddings via Ollama |
+
+Log and `human_rating/` paths in the table are under `data/raw_logs_saluca/creativity/`.
+
+Every generator also scores groundedness as it goes, through Ollama's OpenAI-compatible endpoint
+(`http://localhost:11434/v1`). `run_claude_cli.py` and `run_frontier_claude.py` judge with
+gemma2:9b; `creativity_ratio.py` (unless `--judge` is given) and `run_frontier.py` judge with the
+generating model, gemma2:9b for the released local runs. The logs do not record the judge model.
+
+`merge_human_rating.py` needs the private `_key.json` that `export_human_rating.py` writes. It is
+not released, so the human pass cannot be re-merged from this clone; its result (`grounded_human`)
+is already in the released Fable frontier log, and the released `human_rating/rate_me.csv` is the
+sheet that was rated.
 
 Contents:
 
@@ -169,8 +253,23 @@ Contents:
   author's deposit tooling and record of the published deposit; they are not part of the study.
 
 `code/smoke_local.py`, `code/run_confound.py` and `code/analyze_confound.py` belong to the
-companion world-model-collapse confound study referenced in the paper's introduction. They import
-a `src` package that is not in this repository and do not run here.
+companion world-model-collapse confound study referenced in the paper's introduction.
+`smoke_local.py` and `run_confound.py` import a `src` package that is not in this repository and
+do not run here. `analyze_confound.py` needs no `src`, but it reads
+`data/raw_logs_saluca/confound/step_*.jsonl`, which is not released, so it prints "No step logs"
+and exits. `code/_smoke_cloud.py` is a feasibility probe for a cloud model, not part of the study's
+results.
+
+What an agent can and cannot reach from this clone:
+
+| Part | In this repo | Where it is |
+|---|---|---|
+| Harness, analysis and figure scripts, released logs, figures, preprint, rating sheet | yes | `code/`, `data/`, `figures/`, `paper.*`, `human_rating/` |
+| The `src` package the confound scripts import | no | not in this repository, and its location is not recorded here |
+| The confound study's step logs | no | not released |
+| `_key.json` for the human rating | no | private by design (it unblinds the sheet) |
+| Ollama models (`nomic-embed-text`, `gemma2:9b`) and the Claude CLI | no | external tools you install |
+| The archived preprint | no | Zenodo, concept DOI 10.5281/zenodo.21149156 |
 
 ## Screenshots
 
