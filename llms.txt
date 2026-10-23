@@ -1,0 +1,39 @@
+# context-load-novelty
+
+> Paper package (harness, raw per-idea logs, figures, preprint) for "Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study" (Saluca Labs, 2026): relevant context as neutral reference moves LLM ideation off the mainstream answer, saturating within a few hundred tokens. Code Apache-2.0; paper, figures and data CC-BY-4.0 (the Zenodo record's licence), declared by path in REUSE.toml.
+
+This is a research package, not a library. The scripts in `code/` were written for a parent checkout and do not run from this clone as released: they read logs from `data/raw_logs_saluca/creativity/` and `saluca/`, which must be staged first (see the README Quickstart). Analysis needs a local Ollama with `nomic-embed-text` for embeddings. Cite the concept DOI 10.5281/zenodo.21149156, not the version DOI.
+
+The complete public surface is below. If a script or option is not listed here, it does not exist. There is no package, no service and no test suite. Analysis (no options): `code/analyze_isolation.py`, `code/analyze_frontier.py`, `code/analyze_creativity.py`, `code/compare_judges.py`, `code/make_figures.py`. Generation: `code/creativity_ratio.py` (`--provider`, `--gen`, `--judge`, `--seeds`, `--load-type isolation|pad|functional`, `--loads`, `--func-counts`, `--inject`, `--window`), `code/run_frontier.py` (`--model`, `--seeds`, `--loads`, `--window`), `code/run_claude_cli.py` (`--model`, `--seeds`, `--inject`, `--judge-model`, `--window`), `code/run_frontier_claude.py` (`--model`, `--seeds`, `--loads`, `--window`), `code/build_reference.py` (no options). Judging and rating: `code/re_judge.py` (`--judge`, `--batch`; rewrites logs in place), `code/export_human_rating.py` (`--all`), `code/merge_human_rating.py` (needs the unreleased `_key.json`). Not part of the results: `code/_smoke_cloud.py` (positional `[model] [domain]`), and the confound-study scripts `code/smoke_local.py`, `code/run_confound.py` (import a `src` package not in this repo) and `code/analyze_confound.py` (its logs are not released). `deposit_zenodo.py` is the author's deposit tooling.
+
+## Start here
+
+- [README](https://github.com/saluca-labs/context-load-novelty/blob/main/README.md): how it works (diagrams), status, correction, staged quickstart, reproduce each result, usage, citation
+- [AGENTS.md](https://github.com/saluca-labs/context-load-novelty/blob/main/AGENTS.md): orientation for agents, what you can and cannot see, the only numbers to trust
+- [Full docs in one file](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/llms-full.txt): README, paper, rating rubric and AGENTS.md concatenated
+
+## The study
+
+- [paper.md](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/paper.md): the preprint text (methods, results, limits)
+- [human_rating/RATING_INSTRUCTIONS.md](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/human_rating/RATING_INSTRUCTIONS.md): the blinded groundedness rubric
+
+## Code
+
+- [code/creativity_ratio.py](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/creativity_ratio.py): isolation, pad and functional generators (Ollama or OpenAI-compatible providers)
+- [code/run_frontier.py](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/run_frontier.py): frontier dose-response on a local model
+- [code/run_claude_cli.py](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/run_claude_cli.py): isolation design on Claude models through the Claude CLI
+- [code/analyze_isolation.py](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/analyze_isolation.py): drift, divergence and groundedness per condition
+- [code/analyze_frontier.py](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/analyze_frontier.py): dial, switch or peak verdict against load
+- [code/make_figures.py](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/make_figures.py): the three paper figures from the logs
+
+## Data
+
+- [data/ideas_ollama_gemma2-9b_isolation.jsonl](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/data/ideas_ollama_gemma2-9b_isolation.jsonl): isolation logs for gemma2:9b (one of four models)
+- [data/ideas_frontier_claude-fable-5.jsonl](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/data/ideas_frontier_claude-fable-5.jsonl): frontier logs for Fable (one of two models), including the human ratings
+- [code/references.json](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/code/references.json): the relevant reference corpora injected in the frontier runs
+
+## Optional
+
+- [CITATION.cff](https://raw.githubusercontent.com/saluca-labs/context-load-novelty/main/CITATION.cff): how to cite
+- [Preprint, concept DOI](https://doi.org/10.5281/zenodo.21149156): the record this package backs
+- [paper.pdf](https://github.com/saluca-labs/context-load-novelty/blob/main/paper.pdf): the preprint as published
