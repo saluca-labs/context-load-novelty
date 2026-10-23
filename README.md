@@ -293,8 +293,13 @@ the version 1 DOI, 10.5281/zenodo.21149157, which remains valid for that version
 
 ## License
 
-The repository's [`LICENSE`](LICENSE) is Apache-2.0 (added 2026-08-18) and does not carve out
-the data, figures or paper. The Zenodo record of the preprint is published under CC-BY-4.0.
+Split by path, declared file by file in [`REUSE.toml`](REUSE.toml) ([REUSE](https://reuse.software)
+layout; the licence texts are in [`LICENSES/`](LICENSES/)):
+
+- **Code and repository docs** (`code/*.py`, `deposit_zenodo.py`, README, AGENTS.md, llms.txt,
+  the Zenodo metadata files): **Apache-2.0**, see [`LICENSE`](LICENSE).
+- **Paper, figures and data** (`paper.md`, `paper.pdf`, `figures/`, `data/`, `human_rating/`,
+  `code/references.json`): **CC-BY-4.0**, the licence of the Zenodo record.
 
 ## Links
 

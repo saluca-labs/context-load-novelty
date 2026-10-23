@@ -1,6 +1,6 @@
 # context-load-novelty
 
-> Paper package (harness, raw per-idea logs, figures, preprint) for "Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study" (Saluca Labs, 2026): relevant context as neutral reference moves LLM ideation off the mainstream answer, saturating within a few hundred tokens. LICENSE file Apache-2.0; the Zenodo record of the preprint is CC-BY-4.0.
+> Paper package (harness, raw per-idea logs, figures, preprint) for "Relevant Context-Load as a Saturating Novelty Knob in Language Models: A Cross-Family Study" (Saluca Labs, 2026): relevant context as neutral reference moves LLM ideation off the mainstream answer, saturating within a few hundred tokens. Code Apache-2.0; paper, figures and data CC-BY-4.0 (the Zenodo record's licence), declared by path in REUSE.toml.
 
 This is a research package, not a library. The scripts in `code/` were written for a parent checkout and do not run from this clone as released: they read logs from `data/raw_logs_saluca/creativity/` and `saluca/`, which must be staged first (see the README Quickstart). Analysis needs a local Ollama with `nomic-embed-text` for embeddings. Cite the concept DOI 10.5281/zenodo.21149156, not the version DOI.
 
@@ -305,8 +305,13 @@ the version 1 DOI, 10.5281/zenodo.21149157, which remains valid for that version
 
 #### License
 
-The repository's [`LICENSE`](LICENSE) is Apache-2.0 (added 2026-08-18) and does not carve out
-the data, figures or paper. The Zenodo record of the preprint is published under CC-BY-4.0.
+Split by path, declared file by file in [`REUSE.toml`](REUSE.toml) ([REUSE](https://reuse.software)
+layout; the licence texts are in [`LICENSES/`](LICENSES/)):
+
+- **Code and repository docs** (`code/*.py`, `deposit_zenodo.py`, README, AGENTS.md, llms.txt,
+  the Zenodo metadata files): **Apache-2.0**, see [`LICENSE`](LICENSE).
+- **Paper, figures and data** (`paper.md`, `paper.pdf`, `figures/`, `data/`, `human_rating/`,
+  `code/references.json`): **CC-BY-4.0**, the licence of the Zenodo record.
 
 #### Links
 
