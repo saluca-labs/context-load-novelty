@@ -1,3 +1,5 @@
+![context-load-novelty](docs/img/banner-2026-10-23.jpg)
+
 # Relevant Context-Load as a Saturating Novelty Knob: paper package
 
 Harness, raw per-idea logs, figures and preprint for a cross-family study of whether the amount of
