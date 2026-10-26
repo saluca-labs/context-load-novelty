@@ -1,0 +1,303 @@
+{
+ "version": 2,
+ "written": "2026-10-22",
+ "rule": "debt may only shrink; see repo-merge-gate.md GATE-3",
+ "note": "ids are hashes of each finding; run `python -m gate run` to see them",
+ "entries": [
+  {
+   "check": "paths",
+   "id": "4309ed184e87da537343",
+   "path": "code/creativity_ratio.py"
+  },
+  {
+   "check": "paths",
+   "id": "51ce71c5f44e5335f56f",
+   "path": "code/re_judge.py"
+  },
+  {
+   "check": "paths",
+   "id": "2afd5c4bc17b449dd26d",
+   "path": "code/run_claude_cli.py"
+  },
+  {
+   "check": "paths",
+   "id": "f0d2bc863f286e004e48",
+   "path": "code/run_frontier_claude.py"
+  },
+  {
+   "check": "paths",
+   "id": "70f088fb05c8a3a59f45",
+   "path": "deposit_zenodo.py"
+  },
+  {
+   "check": "style",
+   "id": "4d3f0b660602535b8a1c",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "a33e84f1706612e4ed16",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "0ad13d58bacca7d76f37",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "988d572878e0b2beade9",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "9a8df37a42d353e936a2",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "464140b6facd8e446c5d",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "8bb2215a7dfdb65f1d2c",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "7caf76782431bf115550",
+   "path": "README.md"
+  },
+  {
+   "check": "style",
+   "id": "bb3ae3e09e92f3b92f96",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "a4d5f080c0afe7e05d50",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "6237be9831bbb992bfae",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "b8f24874ff0ddde498e2",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "dd3afe27b744e3a99f2c",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "b50b4acee94000604df0",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "770afeb08546d345bcc1",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "59ad996eda5a186912c1",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "ea033a063af5057465ab",
+   "path": "human_rating/RATING_INSTRUCTIONS.md"
+  },
+  {
+   "check": "style",
+   "id": "96d3a1513896dcd417cd",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "92344e026b13baf32e86",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "c6b70fea9af69c884457",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "1b949ecdd764f5dba2c6",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "05cba0aed8f284eb294f",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "927bbd7ae22d560d4aac",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "ad6f80372e9af8b2dd66",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "1b9bf575016e02f6161c",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "c44c4b45c62b1c8d1aa4",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "1fce9d8e043e29043c6a",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "0434a30b20dc2736302c",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "5ccc86d9e4b11c6409f9",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "6f2c3caff903af1387ca",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "dcf9788d58b130a2869e",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "a48d7ce5622aae7ab140",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "3845b458ece536228a37",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "47239bfe84cb0089efd2",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "d7cedba0b93ca7015013",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "adf75939cd60f3ed581a",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "0df53efcb6dbff5bb358",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "ec88c4a58046259617f9",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "2677536733d84444e8ce",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "29debcea41693bf5f191",
+   "path": "paper.md"
+  },
+  {
+   "check": "style",
+   "id": "de959c6fc82d3874a3ba",
+   "path": "paper.md"
+  },
+  {
+   "check": "test-markers",
+   "id": "94b4d8d4b8b41f757279",
+   "path": ""
+  },
+  {
+   "check": "claims",
+   "id": "a59c86aa776f4a18c505",
+   "path": ""
+  },
+  {
+   "check": "licence",
+   "id": "20b5dd30412671af6fd7",
+   "path": ".zenodo.json"
+  },
+  {
+   "check": "docs",
+   "id": "b4d08d8b436c35746850",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "778c8d0a7ee6fb263adf",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "aafc68c653a507b6941e",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "bbb1f99b140392f1906f",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "6a102ada6b632910f355",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "3f2a7d6004e1dbc82c46",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "7fcb8037f0cbaee52798",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "d1d18256ebd90ac25aa0",
+   "path": "README.md"
+  },
+  {
+   "check": "docs",
+   "id": "b79ed584daf8a632b453",
+   "path": ""
+  },
+  {
+   "check": "branch-protection",
+   "id": "f0fac6b41c6325ac9702",
+   "path": ""
+  }
+ ]
+}
